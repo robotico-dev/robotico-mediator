@@ -21,5 +21,5 @@ asciidoctor docs/trim-aot.adoc -o docs/trim-aot.html
 
 == Repository
 
-* Source: link:https://github.com/robotico/robotico-mediator[robotico-mediator]
-* Package: https://www.nuget.org/packages/Robotico.Mediator/[NuGet]
+* Source: link:https://github.com/robotico-dev/robotico-mediator[robotico-mediator]
+* Package: https://github.com/robotico-dev/robotico-mediator/pkgs/nuget/Robotico.Mediator[GitHub Packages]

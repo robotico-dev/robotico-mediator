@@ -1,5 +1,11 @@
 # Robotico.Mediator
 
+[![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![C#](https://img.shields.io/badge/C%23-12-239120?logo=csharp)](https://learn.microsoft.com/en-us/dotnet/csharp/)
+[![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Robotico.Mediator-blue?logo=github)](https://github.com/robotico-dev/robotico-mediator/packages)
+[![Build](https://github.com/robotico-dev/robotico-mediator/actions/workflows/publish.yml/badge.svg)](https://github.com/robotico-dev/robotico-mediator/actions/workflows/publish.yml)
+
 Lightweight mediator pattern for .NET 8 and .NET 10. CQRS-style request/handler dispatch with pipeline behaviors. Void and command requests return **Robotico.Result** for explicit success/error handling.
 
 ## Features
@@ -15,10 +21,20 @@ Lightweight mediator pattern for .NET 8 and .NET 10. CQRS-style request/handler 
 
 ## Installation
 
+Add the GitHub Packages NuGet source (once per machine) so both packages can be restored:
+
+```bash
+dotnet nuget add source "https://nuget.pkg.github.com/robotico-dev/index.json" --name github --username YOUR_GITHUB_USERNAME --password YOUR_GITHUB_PAT --store-password-in-clear-text
+```
+
+Then add the packages:
+
 ```bash
 dotnet add package Robotico.Mediator
 dotnet add package Robotico.Result
 ```
+
+**Robotico.Result** is published at [GitHub Packages (robotico-dev/robotico-results)](https://github.com/robotico-dev/robotico-results/pkgs/nuget/Robotico.Result). **Robotico.Mediator** is published at [GitHub Packages (robotico-dev/robotico-mediator)](https://github.com/robotico-dev/robotico-mediator/pkgs/nuget/Robotico.Mediator).
 
 ## Quick start
 
@@ -181,11 +197,11 @@ dotnet build benchmarks/Robotico.Mediator.Benchmarks/Robotico.Mediator.Benchmark
 dotnet run -c Release -p benchmarks/Robotico.Mediator.Benchmarks -- --filter "*"
 ```
 
-If you see an "Ambiguous project name" error when building the benchmark project, build from the `robotico-mediator` directory only (e.g. in a clone that contains just this repo).
+If you see an "Ambiguous project name" error when building the benchmark project, build from the repository root (e.g. in a clone of [robotico-dev/robotico-mediator](https://github.com/robotico-dev/robotico-mediator)).
 
 ## Dependencies
 
-- **Robotico.Result**: Void/command results
+- **Robotico.Result**: Void/command results ([GitHub Packages](https://github.com/robotico-dev/robotico-results/pkgs/nuget/Robotico.Result))
 - **Microsoft.Extensions.DependencyInjection.Abstractions**
 - **Microsoft.Extensions.Logging.Abstractions**
 

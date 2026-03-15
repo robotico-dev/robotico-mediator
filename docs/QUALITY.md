@@ -1,6 +1,6 @@
 # Robotico.Mediator — Quality bar (senior/principal 10/10)
 
-This document defines the target quality level for the mediator library and how it aligns with **Robotico.Result** (robotico-results-csharp). Both repos target the same senior/principal bar (10/10).
+This document defines the target quality level for the mediator library and how it aligns with **Robotico.Result** ([robotico-dev/robotico-results](https://github.com/robotico-dev/robotico-results)). Both repos target the same senior/principal bar (10/10).
 
 ## Seniority rating
 
@@ -14,7 +14,7 @@ This document defines the target quality level for the mediator library and how 
 - **Testing**: Unit and contract tests (xUnit, FluentAssertions); real DI and mediator; pipeline order, validation, cancellation, duplicate-handler (runtime and scan-time); source-generator contract tests.
 - **Documentation**: XML docs on public API (including <c>AddMediator</c> remark to register logging); README; `docs/index.adoc`, `docs/architecture.adoc`, `docs/design.adoc`, `docs/trim-aot.adoc`; source generator trade-offs documented in README and design.
 - **Tooling**: TreatWarningsAsErrors, AnalysisLevel latest-all, EnforceCodeStyleInBuild (Directory.Build.props); SourceLink.
-- **Production readiness**: Nullable, structured logging with event IDs (`MediatorEventIds`). When publishing as a standalone NuGet package, use a PackageReference to Robotico.Result instead of a ProjectReference.
+- **Production readiness**: Nullable, structured logging with event IDs (`MediatorEventIds`). The library uses a PackageReference to Robotico.Result from [GitHub Packages](https://github.com/robotico-dev/robotico-results/pkgs/nuget/Robotico.Result).
 
 ## How to reach / maintain 10/10
 

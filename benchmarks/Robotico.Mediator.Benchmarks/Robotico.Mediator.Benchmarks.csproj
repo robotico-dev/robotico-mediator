@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Robotico.Mediator.Benchmarks</RootNamespace>
     <AssemblyName>Robotico.Mediator.Benchmarks</AssemblyName>
+    <PackageId>Robotico.Mediator.Benchmarks</PackageId>
     <IsPackable>false</IsPackable>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
