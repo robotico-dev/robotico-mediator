@@ -8,6 +8,13 @@
 
 Lightweight mediator pattern for .NET 8 and .NET 10. CQRS-style request/handler dispatch with pipeline behaviors. Void and command requests return **Robotico.Result** for explicit success/error handling.
 
+## Robotico dependencies
+
+```mermaid
+flowchart LR
+  A[Robotico.Mediator] --> B[Robotico.Result]
+```
+
 ## Features
 
 - **Contracts**: `IMediator`, `IRequest<TResponse>`, `IRequest` (void), `IRequestHandler<,>`, `IRequestHandler<>`, `ICommand`, `ICommand<TResponse>`, `IQuery<TResponse>`, `IPipelineBehavior<,>`

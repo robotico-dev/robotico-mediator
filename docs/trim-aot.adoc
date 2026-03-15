@@ -1,4 +1,8 @@
 = Trim and AOT Compatibility
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
 
 Robotico.Mediator supports .NET's link:https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/[Native AOT] and link:https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trim-self-contained[trimmed] deployment via an optional source generator. The default reflection-based implementation uses caching to avoid reflection on the hot path but still relies on reflection at startup and for dispatch.
 

@@ -1,4 +1,8 @@
 = Robotico.Mediator — Documentation
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
 
 Lightweight mediator pattern for .NET. CQRS-style request/handler dispatch with pipeline behaviors. Uses Robotico.Result for void/command results.
 

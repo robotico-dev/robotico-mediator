@@ -1,4 +1,8 @@
 = Robotico.Mediator — Design
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
 
 This document explains the design decisions behind Robotico.Mediator: single handler per request, pipeline order, void/Result integration, and when to use commands vs queries.
 

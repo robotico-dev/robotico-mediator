@@ -1,4 +1,8 @@
 = Robotico.Mediator — Architecture
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
 
 This document describes the architecture of Robotico.Mediator: type hierarchy, request flow, and how the pipeline connects to handlers and to Robotico.Result.
 
@@ -8,16 +12,21 @@ Robotico.Mediator is a lightweight mediator library for .NET 8 and .NET 10. It p
 
 == Type Hierarchy
 
-[source,text]
+[mermaid]
 ----
-                    IRequest<TResponse>
-                           |
-         +-----------------+-----------------+
-         |                 |                 |
-    IRequest (void)   ICommand<TResponse>   IQuery<TResponse>
-         |                 |                 |
-    IRequest : IRequest<Result>   ICommand : IRequest   IQuery<T> : IRequest<T>
+graph TB
+  A[IRequest TResponse]
+  B[IRequest void]
+  C[ICommand TResponse]
+  D[IQuery TResponse]
+  E[ICommand]
+  A --> B
+  A --> C
+  A --> D
+  B --> E
 ----
+
+*Above:* `IRequest<TResponse>` (root); `IRequest` void = `IRequest<Result>`; `ICommand` = `IRequest`; `IQuery<T>` = `IRequest<T>`.
 
 *Handlers*
 
