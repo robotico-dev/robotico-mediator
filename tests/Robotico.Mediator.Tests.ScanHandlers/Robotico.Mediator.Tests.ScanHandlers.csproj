@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RootNamespace>Robotico.Mediator.Tests.ScanHandlers</RootNamespace>
+    <AssemblyName>Robotico.Mediator.Tests.ScanHandlers</AssemblyName>
+    <PackageId>Robotico.Mediator.Tests.ScanHandlers</PackageId>
+    <Product>Robotico.Mediator.Tests.ScanHandlers</Product>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);CA1707;CS1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Robotico.Mediator\Robotico.Mediator.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,64 @@
+= Robotico.Mediator — Architecture
+
+This document describes the architecture of Robotico.Mediator: type hierarchy, request flow, and how the pipeline connects to handlers and to Robotico.Result.
+
+== Overview
+
+Robotico.Mediator is a lightweight mediator library for .NET 8 and .NET 10. It provides CQRS-style request/handler dispatch with a single handler per request type, optional pipeline behaviors, and integration with *Robotico.Result* for void/command responses. The mediator resolves handlers from `IServiceProvider`; handler interface and `MethodInfo` are cached per (request type, response type) so the hot path avoids reflection.
+
+== Type Hierarchy
+
+[source,text]
+----
+                    IRequest<TResponse>
+                           |
+         +-----------------+-----------------+
+         |                 |                 |
+    IRequest (void)   ICommand<TResponse>   IQuery<TResponse>
+         |                 |                 |
+    IRequest : IRequest<Result>   ICommand : IRequest   IQuery<T> : IRequest<T>
+----
+
+*Handlers*
+
+* `IRequestHandler<TRequest, TResponse>` — one handler per request type; returns `Task<TResponse>`.
+* `IRequestHandler<TRequest>` — for void/command requests; returns `Task<Result>`.
+* `ICommandHandler<TCommand>`, `ICommandHandler<TCommand, TResponse>`, `IQueryHandler<TQuery, TResponse>` — CQRS markers that extend the request handlers above.
+
+*Pipeline*
+
+* `IPipelineBehavior<TRequest, TResponse>` — wraps handler execution; runs in registration order; can short-circuit by not calling `next()`.
+* `RequestHandlerDelegate<TResponse>` — delegate to the next behavior or the final handler.
+
+*Resolution*
+
+* `IMediator.SendAsync<TResponse>(IRequest<TResponse>, CancellationToken)` — typed request.
+* `IMediator.SendAsync(IRequest, CancellationToken)` — void/command; returns `Task<Result>`.
+
+== Request Flow
+
+. *Send* — Caller invokes `mediator.SendAsync(request)`.
+. *Resolve handler* — Mediator looks up cached `(IRequestHandler<Req, Res>, HandleAsync)` for the runtime request type and response type. For `Result` responses, if no typed handler is found, it tries `IRequestHandler<Req>` (void handler).
+. *Resolve behaviors* — `GetServices<IPipelineBehavior<IRequest<TResponse>, TResponse>>()`; order is registration order (assembly scan or explicit registration).
+. *Build pipeline* — Behaviors are reversed and folded around the handler delegate so the first registered behavior runs first (before the handler).
+. *Execute* — The pipeline delegate is invoked; each behavior may call `next()` or return without calling it (short-circuit).
+. *Return* — The final `TResponse` (or `Result`) is returned to the caller.
+
+Void requests (`IRequest`) are treated as `IRequest<Result>`; they use the same pipeline type and the same caching/resolution rules, with a fallback to the void handler interface.
+
+== Exception Boundary
+
+* *No handler* — Mediator throws `InvalidOperationException` if no handler is registered for the request type.
+* *Handler/behavior code* — Exceptions propagate to the caller. The mediator logs a warning and rethrows. For domain failures, handlers should return `Result.Error(...)` instead of throwing; the library does not catch or convert exceptions to results.
+
+== Dependencies
+
+* *Robotico.Result* — Void/command handlers return `Task<Result>`; success/error is explicit at the call site.
+* *Microsoft.Extensions.DependencyInjection.Abstractions* — Handler and behavior resolution.
+* *Microsoft.Extensions.Logging.Abstractions* — Structured logging (request type, duration, success/failure).
+
+== Registration
+
+* `AddMediator(services, assemblies)` or `AddMediator(services, lifetime, assemblies)` — Registers `IMediator` and scans assemblies for `IRequestHandler<,>`, `IRequestHandler<>`, and `IPipelineBehavior<,>`.
+* Handlers and behaviors are registered as *transient*; mediator lifetime is configurable (e.g. *scoped* for one per HTTP request via `AddMediatorScoped`).
+* Duplicate handlers for the same request type cause an `InvalidOperationException` at startup.

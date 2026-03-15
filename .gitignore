@@ -1,0 +1,33 @@
+# Build
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Bb]uild/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+*.log
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# NuGet
+*.nupkg
+*.snupkg
+artifacts/
+packages/
+
+# Test / coverage
+[Tt]est[Rr]esult*/
+[Cc]overage/
+coverage*.json
+
+# IDE / OS
+.idea/
+.DS_Store
+Thumbs.db

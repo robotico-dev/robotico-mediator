@@ -1,0 +1,59 @@
+= Robotico.Mediator — Design
+
+This document explains the design decisions behind Robotico.Mediator: single handler per request, pipeline order, void/Result integration, and when to use commands vs queries.
+
+== Design Principles
+
+=== Single handler per request
+
+Each request type has *at most one* handler. The mediator resolves by the runtime request type (and response type). This keeps behavior predictable and avoids ambiguity. If assembly scan finds two handlers for the same request type, registration throws at startup.
+
+=== Pipeline: registration order
+
+Pipeline behaviors run in *registration order*: the first registered behavior runs first (before the handler), then the next, and so on. Behaviors are registered in the order they are discovered (e.g. assembly scan) or added to the service collection. The chain is built by reversing the enumerated behaviors and folding around the handler delegate so that "first registered" executes first.
+
+Any behavior can *short-circuit* by returning a response without calling `next()`. Later behaviors and the handler are not invoked.
+
+=== Void and Result consistency
+
+* *Void requests* — `IRequest` extends `IRequest<Result>`. Handlers implement `IRequestHandler<TRequest>` and return `Task<Result>`. They participate in the same pipeline as typed requests that return `Result` (e.g. `IPipelineBehavior<IRequest<Result>, Result>`).
+* *Result at the boundary* — Void/command handlers return `Result` so callers get explicit success/error without relying on exceptions for domain failures. This aligns with Robotico.Result's exception-boundary guidance: throw only at the process or API edge; use `Result` in the domain.
+
+=== SOLID and testability
+
+* Callers depend only on `IMediator` and request types.
+* Handlers depend on their request type and on application services (injected via DI).
+* The mediator depends on `IServiceProvider` and `ILogger<Mediator>`. No direct dependency on concrete handlers or behaviors; all resolution is via DI.
+
+== When to Use Which Type
+
+|===
+| Use case | Request type | Handler | Response
+| Read data, return value | `IQuery<TResponse>` | `IQueryHandler<TQuery, TResponse>` | `Task<TResponse>`
+| Change state, return value | `ICommand<TResponse>` | `ICommandHandler<TCommand, TResponse>` | `Task<TResponse>`
+| Change state, no value | `ICommand` / `IRequest` | `ICommandHandler<TCommand>` / `IRequestHandler<TRequest>` | `Task<Result>`
+|===
+
+Commands and queries are *marker interfaces* for clarity and consistency with CQRS; the mediator treats them as `IRequest` / `IRequest<TResponse>` for resolution and pipeline.
+
+== Performance
+
+* *Caching* — For each (request type, response type), the mediator caches the handler interface type and the `HandleAsync` `MethodInfo`. Subsequent sends for the same request type use the cache; no reflection on the hot path.
+* *Scoped mediator* — In web apps, register the mediator as *scoped* (`AddMediatorScoped`) so one instance is created per scope (e.g. per HTTP request). Handler and behavior instances remain transient unless registered otherwise.
+
+== Trim and AOT
+
+The library uses reflection only for:
+
+* *Startup* — Assembly scan to discover handlers and behaviors.
+* *Cached dispatch* — `MethodInfo.Invoke` with a cached method. If trim/AOT removes or renames the handler method, dispatch can fail.
+
+=== Optional source generator (Robotico.Mediator.SourceGenerator)
+
+An optional package **Robotico.Mediator.SourceGenerator** emits a zero-reflection dispatcher (`GeneratedMediator`) at compile time for trimmed/AOT deployments. Important trade-offs:
+
+* *No pipeline* — Pipeline behaviors are not run; only the handler is invoked.
+* *No validation* — `ValidationPipelineBehavior` and custom validators are not applied.
+* *No built-in logging* — The generated mediator does not log request start/completion/failure. For observability, add logging in handlers or wrap dispatch in your own middleware.
+
+Use the source generator when you need zero-reflection dispatch and can accept no pipeline/validation/logging, or when you add those concerns elsewhere (e.g. in the host or in each handler).

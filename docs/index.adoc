@@ -1,0 +1,25 @@
+= Robotico.Mediator — Documentation
+
+Lightweight mediator pattern for .NET. CQRS-style request/handler dispatch with pipeline behaviors. Uses Robotico.Result for void/command results.
+
+== Quick links
+
+* link:architecture.adoc[Architecture] — Type hierarchy, request flow, pipeline, exception boundary.
+* link:design.adoc[Design] — Single handler per request, pipeline order, void/Result consistency, performance, trim/AOT and source generator.
+* link:trim-aot.adoc[Trim and AOT] — Reflection usage, optional source generator, trimmed/AOT deployment.
+
+== Building the docs
+
+These docs are written in AsciiDoc. To produce HTML (e.g. with Asciidoctor):
+
+----
+asciidoctor docs/index.adoc -o docs/index.html
+asciidoctor docs/architecture.adoc -o docs/architecture.html
+asciidoctor docs/design.adoc -o docs/design.html
+asciidoctor docs/trim-aot.adoc -o docs/trim-aot.html
+----
+
+== Repository
+
+* Source: link:https://github.com/robotico/robotico-mediator[robotico-mediator]
+* Package: https://www.nuget.org/packages/Robotico.Mediator/[NuGet]

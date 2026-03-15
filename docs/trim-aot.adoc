@@ -1,0 +1,31 @@
+= Trim and AOT Compatibility
+
+Robotico.Mediator supports .NET's link:https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/[Native AOT] and link:https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/trim-self-contained[trimmed] deployment via an optional source generator. The default reflection-based implementation uses caching to avoid reflection on the hot path but still relies on reflection at startup and for dispatch.
+
+== Summary
+
+* **Default (reflection)**: Assembly scan at startup uses reflection to discover handlers and pipeline behaviors. Dispatch uses cached `MethodInfo` per (request type, response type)—no reflection on the hot path after first send per request type. Trim/AOT may remove or rename types; ensure handler and validator types are preserved (e.g. trimmer roots) if you use the reflection-based mediator in a trimmed/AOT app.
+* **Source generator (Robotico.Mediator.SourceGenerator)**: Emits a zero-reflection `GeneratedMediator` at compile time. No assembly scan, no `MethodInfo.Invoke`. Use this for trimmed or AOT deployments when you need zero-reflection dispatch. Trade-offs: no pipeline behaviors, no validation pipeline, no built-in logging—add those in handlers or host if needed.
+* **Dependencies**: Robotico.Mediator depends on Robotico.Result (trim/AOT friendly), Microsoft.Extensions.DependencyInjection.Abstractions, and Microsoft.Extensions.Logging.Abstractions. The source generator adds no runtime reflection.
+
+== What the reflection-based mediator uses
+
+* **Startup**: `Assembly.GetTypes()`, `Type.GetInterfaces()`, `Type.GetMethod()` for handler/validator discovery and registration.
+* **Dispatch**: Cached `MethodInfo.Invoke` per (request type, response type). First send for a given request type fills the cache; subsequent sends use the cache only.
+
+== When to use the source generator
+
+Use the optional **Robotico.Mediator.SourceGenerator** package when:
+
+* You are publishing trimmed or AOT and want zero-reflection dispatch.
+* You can accept no pipeline behaviors, no validation pipeline, and no built-in request logging (or you add them elsewhere).
+
+Reference the source generator in your application project and register `GeneratedMediator` as `IMediator` instead of the default `Mediator`. See link:design.adoc#_optional_source_generator_robotico_mediator_sourcegenerator[Design — Optional source generator] for details.
+
+== If you see trim or AOT warnings
+
+1. Ensure you are on a recent version of the library.
+2. For reflection-based mediator: ensure handler, validator, and pipeline behavior types are not trimmed (e.g. use `TrimmerRootAssembly` or preserve the assemblies that contain them).
+3. For source-generated mediator: ensure all request/handler types referenced by the generated code are preserved.
+
+See link:architecture.adoc[Architecture] and link:design.adoc[Design] for general documentation.

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Robotico.Mediator</RootNamespace>
+    <AssemblyName>Robotico.Mediator</AssemblyName>
+    <PackageIcon>logosquare.png</PackageIcon>
+    <Nullable>enable</Nullable>
+    <!-- Marker interfaces (CA1040), delegate naming (CA1711), next param (CA1716), logging (CA1848/CA1873) are intentional. -->
+    <NoWarn>$(NoWarn);CA1040;CA1711;CA1716;CA1848;CA1873</NoWarn>
+    <PackageProjectUrl>https://github.com/robotico/robotico-mediator</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/robotico/robotico-mediator</RepositoryUrl>
+    <RepositoryBranch>main</RepositoryBranch>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+    <!-- Package icon: single source at repo assets (see assets/README.md). -->
+    <None Include="..\..\assets\logosquare.png" Pack="true" PackagePath="\" Link="logosquare.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\robotico-results-csharp\src\Robotico.Result\Robotico.Result.Lib.csproj" />
+  </ItemGroup>
+
+</Project>

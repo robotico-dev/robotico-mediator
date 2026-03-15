@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Robotico.Mediator.Tests.Generated</RootNamespace>
+    <AssemblyName>Robotico.Mediator.Tests.Generated</AssemblyName>
+    <PackageId>Robotico.Mediator.Tests.Generated</PackageId>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <NoWarn>$(NoWarn);CA1707;CA1305;xUnit2002;xUnit1031;CS1591;CA2007;CA1812;CA1852;CA2000;CA1515;CA1062</NoWarn>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Robotico.Mediator\Robotico.Mediator.csproj" />
+    <!-- Source generator runs in this project; ReferenceOutputAssembly=false so we only get generated source, not the analyzer DLL as a runtime ref -->
+    <ProjectReference Include="..\..\src\Robotico.Mediator.SourceGenerator\Robotico.Mediator.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+  </ItemGroup>
+</Project>

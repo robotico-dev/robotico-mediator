@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Robotico.Mediator/Robotico.Mediator.csproj" />
+    <Project Path="src/Robotico.Mediator.SourceGenerator/Robotico.Mediator.SourceGenerator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Robotico.Mediator.Tests/Robotico.Mediator.Tests.csproj" />
+    <Project Path="tests/Robotico.Mediator.Tests.ScanHandlers/Robotico.Mediator.Tests.ScanHandlers.csproj" />
+    <Project Path="tests/Robotico.Mediator.Tests.DuplicateScanHandlers/Robotico.Mediator.Tests.DuplicateScanHandlers.csproj" />
+    <Project Path="tests/Robotico.Mediator.Tests.Generated/Robotico.Mediator.Tests.Generated.csproj" />
+  </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Robotico.Mediator.Benchmarks/Robotico.Mediator.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="README.md" />
+  </Folder>
+</Solution>
