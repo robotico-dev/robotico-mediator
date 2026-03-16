@@ -82,7 +82,7 @@ public class MediatorContractTests
     [Fact]
     public async Task Pipeline_BehaviorsExecuteInRegistrationOrder_FirstRegisteredRunsFirst()
     {
-        List<string> log = new List<string>();
+        List<string> log = [];
         ServiceCollection services = new();
         services.AddLogging();
         services.AddSingleton(log);

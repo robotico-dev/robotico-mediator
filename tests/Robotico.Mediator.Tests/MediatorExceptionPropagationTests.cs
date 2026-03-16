@@ -40,7 +40,7 @@ public class MediatorExceptionPropagationTests
 
     private static MediatorWithLogScope CreateMediatorWithLogCapture()
     {
-        List<LogEntry> logEntries = new();
+        List<LogEntry> logEntries = [];
         ServiceCollection services = new();
         services.AddLogging(builder =>
         {

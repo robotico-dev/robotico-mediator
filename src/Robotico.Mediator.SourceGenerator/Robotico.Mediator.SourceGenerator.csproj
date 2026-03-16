@@ -6,8 +6,8 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
-    <!-- IDE0008/CA1834: Source generator. IDE0011: Braces in generator code. -->
-    <NoWarn>$(NoWarn);IDE0008;CA1834;IDE0011</NoWarn>
+    <!-- IDE0008/CA1834: Source generator. IDE0011: Braces in generator code. IDE0005: Requires GenerateDocumentationFile when enabled; source generator does not generate docs. -->
+    <NoWarn>$(NoWarn);IDE0008;CA1834;IDE0011;IDE0005</NoWarn>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>

@@ -12,9 +12,8 @@
     <ImplicitUsings>true</ImplicitUsings>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <!-- CA1707/CA1515: Benchmark naming and BenchmarkDotNet. -->
-    <!-- CA1812: Benchmark handlers/behaviors are instantiated via DI by type. -->
-    <NoWarn>$(NoWarn);CA1707;CA1515;CA1822;CA1812</NoWarn>
+    <!-- CA1707/CA1515: Benchmark naming and BenchmarkDotNet. CA1812: Benchmark handlers/behaviors are instantiated via DI by type. IDE0005: Requires GenerateDocumentationFile when enabled; benchmarks do not generate docs. -->
+    <NoWarn>$(NoWarn);CA1707;CA1515;CA1822;CA1812;IDE0005</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

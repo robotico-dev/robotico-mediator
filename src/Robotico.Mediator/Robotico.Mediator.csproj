@@ -31,5 +31,9 @@
   <ItemGroup>
     <PackageReference Include="Robotico.Result" />
   </ItemGroup>
-
+  <!-- IDE0130 (namespace match folder) needs these for command-line builds; rule is disabled in .editorconfig for this project. -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="RootNamespace" />
+    <CompilerVisibleProperty Include="ProjectDir" />
+  </ItemGroup>
 </Project>

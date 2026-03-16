@@ -72,7 +72,7 @@ public static class MediatorServiceCollectionExtensions
             typeof(IRequestHandler<>)
         ];
 
-        Dictionary<Type, Type> handlerInterfaceToImplementation = new();
+        Dictionary<Type, Type> handlerInterfaceToImplementation = [];
 
         foreach (Assembly assembly in assemblies)
         {

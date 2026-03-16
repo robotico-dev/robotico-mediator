@@ -45,7 +45,7 @@ public sealed class ValidatedCommandValidator : IValidator<ValidatedCommand>
     public VoidResult Validate(ValidatedCommand request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        Dictionary<string, string[]> errors = new Dictionary<string, string[]>();
+        Dictionary<string, string[]> errors = [];
         if (string.IsNullOrWhiteSpace(request.Name))
         {
             errors["Name"] = ["Name is required"];

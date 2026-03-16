@@ -5,8 +5,8 @@
     <PackageId>Robotico.Mediator.Tests.Generated</PackageId>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <!-- CA1707/CA1515: Test naming and discovery. CA2007: Test code may use plain await. CA1062: Generated test request objects. -->
-    <NoWarn>$(NoWarn);CA1707;CA1515</NoWarn>
+    <!-- CA1707/CA1515: Test naming and discovery. CA2007: Test code may use plain await. CA1062: Generated test request objects. IDE0005: Requires GenerateDocumentationFile when enabled; generated tests do not generate docs. -->
+    <NoWarn>$(NoWarn);CA1707;CA1515;IDE0005</NoWarn>
     <!-- Generated test code; no XML doc requirement. -->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
