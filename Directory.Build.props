@@ -5,6 +5,8 @@
     CA1848/CA1873 (logging). All intentional; see .csproj.
   -->
   <PropertyGroup>
+    <!-- NU1603: CodeAnalysis 5.0.0 often not on feed; 5.3.0 resolved. Suppress so restore succeeds; SourceGenerator uses 5.0.0 to match host compiler. -->
+    <RestoreNoWarn>$(RestoreNoWarn);NU1603</RestoreNoWarn>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>

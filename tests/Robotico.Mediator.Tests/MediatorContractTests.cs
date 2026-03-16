@@ -28,7 +28,7 @@ public class MediatorContractTests
         services.AddTransient<IRequestHandler<VoidOnlyCommand>, VoidOnlyCommandHandler>();
         using ServiceProvider provider = services.BuildServiceProvider();
         IMediator mediator = provider.GetRequiredService<IMediator>();
-        VoidOnlyCommand request = new VoidOnlyCommand(1);
+        VoidOnlyCommand request = new(1);
 
         VoidResult viaVoid = await mediator.SendAsync(request);
         VoidResult viaTyped = await mediator.SendAsync<VoidResult>((IRequest<VoidResult>)request);

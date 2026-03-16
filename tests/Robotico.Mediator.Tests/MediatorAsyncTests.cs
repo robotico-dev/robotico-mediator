@@ -84,7 +84,7 @@ public class MediatorAsyncTests
         using MediatorScope scope = CreateMediator();
         IMediator mediator = scope.Mediator;
         AsyncQuery query = new(5000);
-        using CancellationTokenSource cts = new CancellationTokenSource();
+        using CancellationTokenSource cts = new();
         await cts.CancelAsync();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => mediator.SendAsync(query, cts.Token));
