@@ -1,4 +1,9 @@
 <Project>
+  <!--
+    Library NoWarn (in src/Robotico.Mediator/Robotico.Mediator.csproj):
+    CA1040 (empty marker interfaces), CA1711 (delegate naming), CA1716 (parameter name),
+    CA1848/CA1873 (logging). All intentional; see .csproj.
+  -->
   <PropertyGroup>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>

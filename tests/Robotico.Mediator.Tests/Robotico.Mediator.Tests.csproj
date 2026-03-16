@@ -6,7 +6,8 @@
     <PackageId>Robotico.Mediator.Tests</PackageId>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <NoWarn>$(NoWarn);CA1707;CA1305;xUnit2002;xUnit1031;CS1591;CA2007;CA1812;CA1852;CA2000</NoWarn>
+    <!-- CA1707/CA1515: Test naming and discovery. CA2007: Test code may use plain await (no ConfigureAwait). -->
+    <NoWarn>$(NoWarn);CA1707;CA1515;CA2007</NoWarn>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <CoverletOutputFormat>cobertura</CoverletOutputFormat>
   </PropertyGroup>

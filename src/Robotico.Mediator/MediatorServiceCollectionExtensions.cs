@@ -119,7 +119,9 @@ public static class MediatorServiceCollectionExtensions
                 foreach (Type interfaceType in type.GetInterfaces())
                 {
                     if (!interfaceType.IsGenericType)
+                    {
                         continue;
+                    }
 
                     if (interfaceType.GetGenericTypeDefinition() == validatorType)
                     {

@@ -99,7 +99,9 @@ public sealed class Mediator(IServiceProvider serviceProvider, ILogger<Mediator>
     {
         (Type RequestType, Type ResponseType) key = (requestType, responseType);
         if (HandlerCache.TryGetValue(key, out (Type HandlerInterfaceType, MethodInfo HandleMethod) cached))
+        {
             return cached;
+        }
 
         Type handlerInterfaceType = typeof(IRequestHandler<,>).MakeGenericType(requestType, responseType);
         MethodInfo? handleMethod = handlerInterfaceType.GetMethod(
@@ -119,7 +121,9 @@ public sealed class Mediator(IServiceProvider serviceProvider, ILogger<Mediator>
     private static (Type HandlerInterfaceType, MethodInfo HandleMethod) GetOrAddVoidHandlerInfo(Type requestType)
     {
         if (VoidHandlerCache.TryGetValue(requestType, out (Type HandlerInterfaceType, MethodInfo HandleMethod) cached))
+        {
             return cached;
+        }
 
         Type handlerInterfaceType = typeof(IRequestHandler<>).MakeGenericType(requestType);
         MethodInfo? handleMethod = handlerInterfaceType.GetMethod(

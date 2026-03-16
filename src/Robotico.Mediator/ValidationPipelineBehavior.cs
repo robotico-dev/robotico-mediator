@@ -24,10 +24,14 @@ public sealed class ValidationPipelineBehavior(IServiceProvider serviceProvider)
         (Type validatorType, MethodInfo? validateMethod) = GetOrAddValidatorInfo(requestType);
         object? validator = serviceProvider.GetService(validatorType);
         if (validator is null)
+        {
             return next();
+        }
 
         if (validateMethod is null)
+        {
             return next();
+        }
 
         Robotico.Result.Result validationResult = (Robotico.Result.Result)validateMethod.Invoke(validator, [request])!;
         return validationResult.IsSuccess() ? next() : Task.FromResult(validationResult);
@@ -36,7 +40,9 @@ public sealed class ValidationPipelineBehavior(IServiceProvider serviceProvider)
     private static (Type ValidatorType, MethodInfo? ValidateMethod) GetOrAddValidatorInfo(Type requestType)
     {
         if (ValidatorInfoCache.TryGetValue(requestType, out (Type ValidatorType, MethodInfo? ValidateMethod) cached))
+        {
             return cached;
+        }
 
         Type validatorType = typeof(IValidator<>).MakeGenericType(requestType);
         MethodInfo? validateMethod = validatorType.GetMethod(nameof(IValidator<IRequest>.Validate), [requestType]);
