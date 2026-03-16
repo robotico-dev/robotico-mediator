@@ -5,8 +5,8 @@
     <AssemblyName>Robotico.Mediator</AssemblyName>
     <PackageIcon>logosquare.png</PackageIcon>
     <Nullable>enable</Nullable>
-    <!-- Marker interfaces (CA1040), delegate naming (CA1711), next param (CA1716), logging (CA1848/CA1873) are intentional. -->
-    <NoWarn>$(NoWarn);CA1040;CA1711;CA1716;CA1848;CA1873</NoWarn>
+    <!-- CA1716/CA1848/CA1873: intentional; CA1040/CA1711 suppressed at type level. RS0016/RS0017: Public API tracking. RS0026: SendAsync overloads (generic vs void) are intentional; optional CancellationToken is standard. -->
+    <NoWarn>$(NoWarn);CA1716;CA1848;CA1873;RS0016;RS0017;RS0026</NoWarn>
     <PackageProjectUrl>https://github.com/robotico-dev/robotico-mediator</PackageProjectUrl>
     <RepositoryUrl>https://github.com/robotico-dev/robotico-mediator</RepositoryUrl>
     <RepositoryBranch>main</RepositoryBranch>
@@ -17,18 +17,19 @@
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
-    <!-- Package icon: single source at repo assets (see assets/README.md). -->
+    <!-- Package icon: single source at repo assets. -->
     <None Include="..\..\assets\logosquare.png" Pack="true" PackagePath="\" Link="logosquare.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Robotico.Result" Version="1.*" />
+    <PackageReference Include="Robotico.Result" />
   </ItemGroup>
 
 </Project>

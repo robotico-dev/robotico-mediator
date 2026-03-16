@@ -157,6 +157,7 @@ result.Should().Be("User-42");
 
 - **SOLID**: Abstractions (interfaces) for mediator, requests, handlers, and behaviors; dependency on `IServiceProvider` for resolution
 - **POLA**: One handler per request type; pipeline order is explicit and predictable; startup validation fails fast if multiple handlers exist for the same request
+- **Pipeline order (void/command requests):** Built-in behaviors are registered in this order: **Validation** (inner, runs first), then **Observability** (outer, runs last). So at runtime: Observability → … → Validation → handler. Validation short-circuits on failure without calling the handler; Observability wraps the whole pipeline for logging and tracing.
 - **Void pipeline**: `IRequest` extends `IRequest<Result>`, so void requests go through the same pipeline as typed requests
 - **Result consistency**: Void/command handlers return `Result` so success and errors are explicit (no exceptions for domain failures)
 
@@ -205,6 +206,20 @@ dotnet run -c Release -p benchmarks/Robotico.Mediator.Benchmarks -- --filter "*"
 ```
 
 If you see an "Ambiguous project name" error when building the benchmark project, build from the repository root (e.g. in a clone of [robotico-dev/robotico-mediator](https://github.com/robotico-dev/robotico-mediator)).
+
+## Analyzer suppressions (NoWarn)
+
+The library intentionally suppresses the following analyzers; rationale is documented here for principal-grade transparency:
+
+| Code | Rationale |
+|------|------------|
+| **CA1716** | Parameter name `request` in `SendAsync` matches a reserved language keyword style; renaming would harm API clarity and consistency with the mediator pattern. |
+| **CA1848** / **CA1873** | Logging extension methods use the logger message template; the analyzer's suggestion would reduce structured logging quality. |
+| **CA1040** / **CA1711** | Suppressed at type level on marker interfaces (`IRequest<TResponse>`, `IRequest`, etc.) and delegate type `RequestHandlerDelegate`; empty/marker interfaces and delegate naming are standard in mediator-style APIs. |
+
+All other warnings are treated as errors (`TreatWarningsAsErrors`). See `Directory.Build.props` and `.csproj` for the full build bar.
+
+**Public API:** This library uses `Microsoft.CodeAnalysis.PublicApiAnalyzers`. To populate `PublicAPI.Shipped.txt`, apply the code fix "Add to PublicAPI.Unshipped" (Fix All in project), then at release move entries to `PublicAPI.Shipped.txt`.
 
 ## Dependencies
 

@@ -24,6 +24,7 @@ public sealed class GenVoidCommandHandler : IRequestHandler<GenVoidCommand>
 {
     public Task<VoidResult> HandleAsync(GenVoidCommand request, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(request);
         return Task.FromResult(VoidResult.Success());
     }
 }

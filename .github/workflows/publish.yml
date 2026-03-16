@@ -14,11 +14,13 @@ permissions:
   packages: write
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     strategy:
       matrix:
         dotnet-version: [ "8.0.x", "10.0.x" ]
@@ -47,6 +49,16 @@ jobs:
           dotnet test tests/Robotico.Mediator.Tests/Robotico.Mediator.Tests.csproj --no-build -c Release --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory ./coverage
 
+      - name: Check coverage threshold (80% line)
+        run: |
+          COV_FILE=$(find ./coverage -name 'coverage.cobertura.xml' 2>/dev/null | head -1)
+          if [ -z "$COV_FILE" ]; then echo "No coverage file found"; exit 1; fi
+          RATE=$(sed -n 's/.*line-rate="\([^"]*\)".*/\1/p' "$COV_FILE" | head -1)
+          if [ -z "$RATE" ]; then echo "Could not parse line-rate"; exit 1; fi
+          PERCENT=$(echo "$RATE * 100" | bc)
+          echo "Line coverage: ${PERCENT}%"
+          if [ "$(echo "$RATE < 0.80" | bc)" -eq 1 ]; then echo "Coverage ${PERCENT}% is below 80%"; exit 1; fi
+
       - name: Upload coverage (main/PR)
         uses: codecov/codecov-action@v4
         if: matrix.dotnet-version == '10.0.x' && (github.event_name == 'push' || github.event_name == 'pull_request')
@@ -56,6 +68,8 @@ jobs:
 
   trim-validate:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - uses: actions/checkout@v4
 
@@ -77,6 +91,8 @@ jobs:
   publish-nuget:
     needs: [build-and-test, trim-validate]
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     if: github.event_name == 'release' && github.event.action == 'published' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4

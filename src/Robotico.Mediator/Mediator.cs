@@ -26,6 +26,8 @@ public sealed class Mediator(IServiceProvider serviceProvider, ILogger<Mediator>
     private static readonly ConcurrentDictionary<Type, (Type HandlerInterfaceType, MethodInfo HandleMethod)> VoidHandlerCache = new();
 
     /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when no handler is registered for the request type, or when multiple handlers are registered for the same request type.</exception>
     public async Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -89,6 +91,8 @@ public sealed class Mediator(IServiceProvider serviceProvider, ILogger<Mediator>
     }
 
     /// <inheritdoc />
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when no handler is registered for the request type, or when multiple handlers are registered for the same request type.</exception>
     public Task<Robotico.Result.Result> SendAsync(IRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -142,7 +146,7 @@ public sealed class Mediator(IServiceProvider serviceProvider, ILogger<Mediator>
 
     private object? ResolveSingleHandler(Type handlerInterfaceType, Type requestType)
     {
-        object?[] handlers = serviceProvider.GetServices(handlerInterfaceType).Cast<object?>().ToArray();
+        object?[] handlers = (from object? h in serviceProvider.GetServices(handlerInterfaceType) select h).ToArray();
         if (handlers.Length > 1)
         {
             throw new InvalidOperationException(

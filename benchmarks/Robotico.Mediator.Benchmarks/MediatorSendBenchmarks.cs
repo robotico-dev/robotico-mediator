@@ -29,6 +29,9 @@ public class MediatorSendBenchmarks
         _query = new BenchQuery(42);
     }
 
+    [GlobalCleanup]
+    public void Cleanup() => (_serviceProvider as IDisposable)?.Dispose();
+
     [Benchmark(Baseline = true)]
     public async Task<string> SendAsync_NoPipeline()
     {
@@ -42,6 +45,7 @@ public class MediatorSendBenchmarks
     }
 
     private IMediator _mediatorWithOneBehavior = null!;
+    private ServiceProvider? _iterationProvider;
 
     [IterationSetup(Target = nameof(SendAsync_WithOneBehavior))]
     public void SetupWithBehavior()
@@ -51,7 +55,15 @@ public class MediatorSendBenchmarks
         services.AddTransient<IMediator, Mediator>();
         services.AddTransient<IRequestHandler<BenchQuery, string>, BenchQueryHandler>();
         services.AddTransient<IPipelineBehavior<IRequest<string>, string>, NoOpBehavior>();
-        _mediatorWithOneBehavior = services.BuildServiceProvider().GetRequiredService<IMediator>();
+        _iterationProvider = services.BuildServiceProvider();
+        _mediatorWithOneBehavior = _iterationProvider.GetRequiredService<IMediator>();
+    }
+
+    [IterationCleanup(Target = nameof(SendAsync_WithOneBehavior))]
+    public void CleanupWithBehavior()
+    {
+        _iterationProvider?.Dispose();
+        _iterationProvider = null;
     }
 
     private sealed record BenchQuery(int Id) : IRequest<string>;

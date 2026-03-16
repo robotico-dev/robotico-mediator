@@ -24,7 +24,21 @@ public class MediatorExceptionPropagationTests
 
     #endregion
 
-    private static (IMediator mediator, List<LogEntry> logEntries) CreateMediatorWithLogCapture()
+    private sealed class MediatorWithLogScope : IDisposable
+    {
+        private readonly ServiceProvider _provider;
+        public IMediator Mediator { get; }
+        public List<LogEntry> LogEntries { get; }
+        public MediatorWithLogScope(ServiceProvider provider, IMediator mediator, List<LogEntry> logEntries)
+        {
+            _provider = provider;
+            Mediator = mediator;
+            LogEntries = logEntries;
+        }
+        public void Dispose() => _provider.Dispose();
+    }
+
+    private static MediatorWithLogScope CreateMediatorWithLogCapture()
     {
         List<LogEntry> logEntries = new();
         ServiceCollection services = new();
@@ -35,14 +49,17 @@ public class MediatorExceptionPropagationTests
         });
         services.AddTransient<IMediator, Robotico.Mediator.Mediator>();
         services.AddTransient<IRequestHandler<ThrowingQuery, string>, ThrowingHandler>();
-        IMediator mediator = services.BuildServiceProvider().GetRequiredService<IMediator>();
-        return (mediator, logEntries);
+        ServiceProvider provider = services.BuildServiceProvider();
+        IMediator mediator = provider.GetRequiredService<IMediator>();
+        return new MediatorWithLogScope(provider, mediator, logEntries);
     }
 
     [Fact]
     public async Task SendAsync_WhenHandlerThrows_PropagatesSameException()
     {
-        (IMediator mediator, List<LogEntry> logEntries) = CreateMediatorWithLogCapture();
+        using MediatorWithLogScope scope = CreateMediatorWithLogCapture();
+        IMediator mediator = scope.Mediator;
+        List<LogEntry> logEntries = scope.LogEntries;
         ThrowingQuery request = new("x");
 
         InvalidOperationException? thrown = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -54,7 +71,9 @@ public class MediatorExceptionPropagationTests
     [Fact]
     public async Task SendAsync_WhenHandlerThrows_LogsWarningThenRethrows()
     {
-        (IMediator mediator, List<LogEntry> logEntries) = CreateMediatorWithLogCapture();
+        using MediatorWithLogScope scope = CreateMediatorWithLogCapture();
+        IMediator mediator = scope.Mediator;
+        List<LogEntry> logEntries = scope.LogEntries;
         ThrowingQuery request = new("y");
 
         InvalidOperationException? thrown = await Assert.ThrowsAsync<InvalidOperationException>(

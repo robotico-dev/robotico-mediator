@@ -14,4 +14,13 @@ internal static class MediatorEventIds
 
     /// <summary>Request failed with an exception.</summary>
     internal const int RequestFailed = 3;
+
+    /// <summary>Observability: request started (span created).</summary>
+    internal const int ObservabilityRequestStarted = 10;
+
+    /// <summary>Observability: request completed (duration, result).</summary>
+    internal const int ObservabilityRequestCompleted = 11;
+
+    /// <summary>Observability: request failed with exception.</summary>
+    internal const int ObservabilityRequestFailed = 12;
 }

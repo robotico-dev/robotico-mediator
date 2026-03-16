@@ -6,6 +6,8 @@
     <PackageId>Robotico.Mediator.Tests.ScanHandlers</PackageId>
     <Product>Robotico.Mediator.Tests.ScanHandlers</Product>
     <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- CA1707/CA1515: Test naming and discovery. -->

@@ -33,7 +33,15 @@ public class MediatorBasicsTests
 
     #endregion
 
-    private static IMediator CreateMediator()
+    private sealed class MediatorScope : IDisposable
+    {
+        private readonly ServiceProvider _provider;
+        public IMediator Mediator { get; }
+        public MediatorScope(ServiceProvider provider, IMediator mediator) { _provider = provider; Mediator = mediator; }
+        public void Dispose() => _provider.Dispose();
+    }
+
+    private static MediatorScope CreateMediator()
     {
         ServiceCollection services = new();
         services.AddLogging();
@@ -41,13 +49,14 @@ public class MediatorBasicsTests
         services.AddTransient<IRequestHandler<TestQuery, string>, TestQueryHandler>();
         services.AddTransient<IRequestHandler<TestVoidCommand>, TestVoidCommandHandler>();
         ServiceProvider provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<IMediator>();
+        return new MediatorScope(provider, provider.GetRequiredService<IMediator>());
     }
 
     [Fact]
     public async Task SendAsync_WithTypedRequest_ReturnsHandlerResponse()
     {
-        IMediator mediator = CreateMediator();
+        using MediatorScope scope = CreateMediator();
+        IMediator mediator = scope.Mediator;
         TestQuery query = new("hello");
 
         string result = await mediator.SendAsync(query);
@@ -58,7 +67,8 @@ public class MediatorBasicsTests
     [Fact]
     public async Task SendAsync_WithVoidRequest_ReturnsSuccessResult()
     {
-        IMediator mediator = CreateMediator();
+        using MediatorScope scope = CreateMediator();
+        IMediator mediator = scope.Mediator;
         TestVoidCommand command = new("test");
 
         VoidResult result = await mediator.SendAsync(command);
@@ -69,7 +79,8 @@ public class MediatorBasicsTests
     [Fact]
     public async Task SendAsync_ResolvesHandlerFromServiceProvider()
     {
-        IMediator mediator = CreateMediator();
+        using MediatorScope scope = CreateMediator();
+        IMediator mediator = scope.Mediator;
         TestQuery query = new("world");
 
         string result = await mediator.SendAsync(query);

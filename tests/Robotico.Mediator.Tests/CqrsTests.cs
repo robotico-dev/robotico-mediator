@@ -43,7 +43,15 @@ public class CqrsTests
 
     #endregion
 
-    private static IMediator CreateMediator()
+    private sealed class MediatorScope : IDisposable
+    {
+        private readonly ServiceProvider _provider;
+        public IMediator Mediator { get; }
+        public MediatorScope(ServiceProvider provider, IMediator mediator) { _provider = provider; Mediator = mediator; }
+        public void Dispose() => _provider.Dispose();
+    }
+
+    private static MediatorScope CreateMediator()
     {
         ServiceCollection services = new();
         services.AddLogging();
@@ -52,13 +60,14 @@ public class CqrsTests
         services.AddTransient<IRequestHandler<DeleteItemCommand>, DeleteItemCommandHandler>();
         services.AddTransient<IRequestHandler<GetItemQuery, string>, GetItemQueryHandler>();
         ServiceProvider provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<IMediator>();
+        return new MediatorScope(provider, provider.GetRequiredService<IMediator>());
     }
 
     [Fact]
     public async Task Command_WithResponse_IsHandledByCommandHandler()
     {
-        IMediator mediator = CreateMediator();
+        using MediatorScope scope = CreateMediator();
+        IMediator mediator = scope.Mediator;
         CreateItemCommand command = new("TestItem");
 
         int result = await mediator.SendAsync(command);
@@ -69,7 +78,8 @@ public class CqrsTests
     [Fact]
     public async Task Command_WithoutResponse_IsHandledByCommandHandler()
     {
-        IMediator mediator = CreateMediator();
+        using MediatorScope scope = CreateMediator();
+        IMediator mediator = scope.Mediator;
         DeleteItemCommand command = new(1);
 
         VoidResult result = await mediator.SendAsync(command);
@@ -80,7 +90,8 @@ public class CqrsTests
     [Fact]
     public async Task Query_IsHandledByQueryHandler()
     {
-        IMediator mediator = CreateMediator();
+        using MediatorScope scope = CreateMediator();
+        IMediator mediator = scope.Mediator;
         GetItemQuery query = new(5);
 
         string result = await mediator.SendAsync(query);

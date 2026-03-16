@@ -18,7 +18,7 @@ public class MediatorRegistrationTests
         services.AddLogging();
         services.AddSingleton(new List<string>());
         services.AddMediator(ScanAssembly);
-        ServiceProvider provider = services.BuildServiceProvider();
+        using ServiceProvider provider = services.BuildServiceProvider();
 
         IMediator mediator = provider.GetRequiredService<IMediator>();
 
@@ -55,7 +55,7 @@ public class MediatorRegistrationTests
         ServiceCollection services = new();
         services.AddLogging();
         services.AddMediatorScoped(ScanAssembly);
-        ServiceProvider provider = services.BuildServiceProvider();
+        using ServiceProvider provider = services.BuildServiceProvider();
 
         using IServiceScope scope1 = provider.CreateScope();
         using IServiceScope scope2 = provider.CreateScope();

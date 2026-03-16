@@ -16,19 +16,28 @@ public class MediatorErrorTests
 
     #endregion
 
-    private static IMediator CreateEmptyMediator()
+    private sealed class MediatorScope : IDisposable
+    {
+        private readonly ServiceProvider _provider;
+        public IMediator Mediator { get; }
+        public MediatorScope(ServiceProvider provider, IMediator mediator) { _provider = provider; Mediator = mediator; }
+        public void Dispose() => _provider.Dispose();
+    }
+
+    private static MediatorScope CreateEmptyMediator()
     {
         ServiceCollection services = new();
         services.AddLogging();
         services.AddTransient<IMediator, Robotico.Mediator.Mediator>();
         ServiceProvider provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<IMediator>();
+        return new MediatorScope(provider, provider.GetRequiredService<IMediator>());
     }
 
     [Fact]
     public async Task SendAsync_WithNoRegisteredHandler_ThrowsInvalidOperationException()
     {
-        IMediator mediator = CreateEmptyMediator();
+        using MediatorScope scope = CreateEmptyMediator();
+        IMediator mediator = scope.Mediator;
         UnhandledQuery query = new("test");
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => mediator.SendAsync(query));
@@ -37,7 +46,8 @@ public class MediatorErrorTests
     [Fact]
     public async Task SendAsync_VoidWithNoRegisteredHandler_ThrowsInvalidOperationException()
     {
-        IMediator mediator = CreateEmptyMediator();
+        using MediatorScope scope = CreateEmptyMediator();
+        IMediator mediator = scope.Mediator;
         UnhandledVoidCommand command = new();
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => mediator.SendAsync(command));
@@ -46,7 +56,8 @@ public class MediatorErrorTests
     [Fact]
     public async Task SendAsync_WithNullRequest_ThrowsArgumentNullException()
     {
-        IMediator mediator = CreateEmptyMediator();
+        using MediatorScope scope = CreateEmptyMediator();
+        IMediator mediator = scope.Mediator;
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => mediator.SendAsync<string>(null!));
     }
@@ -54,7 +65,8 @@ public class MediatorErrorTests
     [Fact]
     public async Task SendAsync_VoidWithNullRequest_ThrowsArgumentNullException()
     {
-        IMediator mediator = CreateEmptyMediator();
+        using MediatorScope scope = CreateEmptyMediator();
+        IMediator mediator = scope.Mediator;
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => mediator.SendAsync(null!));
     }
@@ -67,7 +79,8 @@ public class MediatorErrorTests
         services.AddTransient<IMediator, Robotico.Mediator.Mediator>();
         services.AddTransient<IRequestHandler<UnhandledQuery, string>, DuplicateHandlerOne>();
         services.AddTransient<IRequestHandler<UnhandledQuery, string>, DuplicateHandlerTwo>();
-        IMediator mediator = services.BuildServiceProvider().GetRequiredService<IMediator>();
+        using ServiceProvider provider = services.BuildServiceProvider();
+        IMediator mediator = provider.GetRequiredService<IMediator>();
         UnhandledQuery query = new("test");
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => mediator.SendAsync(query));

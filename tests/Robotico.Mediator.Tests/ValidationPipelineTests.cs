@@ -17,7 +17,7 @@ public class ValidationPipelineTests
         ServiceCollection services = new();
         services.AddLogging();
         services.AddMediator(typeof(ValidatedCommand).Assembly);
-        ServiceProvider provider = services.BuildServiceProvider();
+        using ServiceProvider provider = services.BuildServiceProvider();
         IMediator mediator = provider.GetRequiredService<IMediator>();
 
         VoidResult result = await mediator.SendAsync(new ValidatedCommand("Alice", 30));
@@ -31,7 +31,7 @@ public class ValidationPipelineTests
         ServiceCollection services = new();
         services.AddLogging();
         services.AddMediator(typeof(ValidatedCommand).Assembly);
-        ServiceProvider provider = services.BuildServiceProvider();
+        using ServiceProvider provider = services.BuildServiceProvider();
         IMediator mediator = provider.GetRequiredService<IMediator>();
 
         VoidResult result = await mediator.SendAsync(new ValidatedCommand("", -1));
@@ -50,7 +50,7 @@ public class ValidationPipelineTests
         ServiceCollection services = new();
         services.AddLogging();
         services.AddMediator(typeof(ValidatedCommand).Assembly);
-        ServiceProvider provider = services.BuildServiceProvider();
+        using ServiceProvider provider = services.BuildServiceProvider();
         IMediator mediator = provider.GetRequiredService<IMediator>();
 
         VoidResult result = await mediator.SendAsync(new ScanHandlers.ScanCommand());

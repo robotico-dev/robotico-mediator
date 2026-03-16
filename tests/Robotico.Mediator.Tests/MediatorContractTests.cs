@@ -26,7 +26,8 @@ public class MediatorContractTests
         services.AddLogging();
         services.AddTransient<IMediator, Robotico.Mediator.Mediator>();
         services.AddTransient<IRequestHandler<VoidOnlyCommand>, VoidOnlyCommandHandler>();
-        IMediator mediator = services.BuildServiceProvider().GetRequiredService<IMediator>();
+        using ServiceProvider provider = services.BuildServiceProvider();
+        IMediator mediator = provider.GetRequiredService<IMediator>();
         VoidOnlyCommand request = new VoidOnlyCommand(1);
 
         VoidResult viaVoid = await mediator.SendAsync(request);
@@ -89,7 +90,8 @@ public class MediatorContractTests
         services.AddTransient<IRequestHandler<OrderQuery, int>, OrderQueryHandler>();
         services.AddTransient<IPipelineBehavior<IRequest<int>, int>, OrderBehaviorA>();
         services.AddTransient<IPipelineBehavior<IRequest<int>, int>, OrderBehaviorB>();
-        IMediator mediator = services.BuildServiceProvider().GetRequiredService<IMediator>();
+        using ServiceProvider provider = services.BuildServiceProvider();
+        IMediator mediator = provider.GetRequiredService<IMediator>();
 
         int result = await mediator.SendAsync(new OrderQuery(1));
 

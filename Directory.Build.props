@@ -14,7 +14,7 @@
     <AnalysisLevel>latest-all</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Robotico</Authors>
     <Company>Robotico</Company>
     <Product>Robotico.Mediator</Product>

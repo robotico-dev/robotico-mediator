@@ -35,7 +35,15 @@ public class MediatorAsyncTests
 
     #endregion
 
-    private static IMediator CreateMediator()
+    private sealed class MediatorScope : IDisposable
+    {
+        private readonly ServiceProvider _provider;
+        public IMediator Mediator { get; }
+        public MediatorScope(ServiceProvider provider, IMediator mediator) { _provider = provider; Mediator = mediator; }
+        public void Dispose() => _provider.Dispose();
+    }
+
+    private static MediatorScope CreateMediator()
     {
         ServiceCollection services = new();
         services.AddLogging();
@@ -43,13 +51,14 @@ public class MediatorAsyncTests
         services.AddTransient<IRequestHandler<AsyncQuery, string>, AsyncQueryHandler>();
         services.AddTransient<IRequestHandler<AsyncVoidCommand>, AsyncVoidCommandHandler>();
         ServiceProvider provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<IMediator>();
+        return new MediatorScope(provider, provider.GetRequiredService<IMediator>());
     }
 
     [Fact]
     public async Task SendAsync_AsyncHandler_CompletesSuccessfully()
     {
-        IMediator mediator = CreateMediator();
+        using MediatorScope scope = CreateMediator();
+        IMediator mediator = scope.Mediator;
         AsyncQuery query = new(10);
 
         string result = await mediator.SendAsync(query);
@@ -60,7 +69,8 @@ public class MediatorAsyncTests
     [Fact]
     public async Task SendAsync_AsyncVoidHandler_CompletesSuccessfully()
     {
-        IMediator mediator = CreateMediator();
+        using MediatorScope scope = CreateMediator();
+        IMediator mediator = scope.Mediator;
         AsyncVoidCommand command = new(10);
 
         VoidResult result = await mediator.SendAsync(command);
@@ -71,9 +81,10 @@ public class MediatorAsyncTests
     [Fact]
     public async Task SendAsync_WithCancellation_ThrowsOperationCanceledException()
     {
-        IMediator mediator = CreateMediator();
+        using MediatorScope scope = CreateMediator();
+        IMediator mediator = scope.Mediator;
         AsyncQuery query = new(5000);
-        CancellationTokenSource cts = new();
+        using CancellationTokenSource cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => mediator.SendAsync(query, cts.Token));

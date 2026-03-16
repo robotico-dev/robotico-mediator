@@ -13,13 +13,14 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <!-- CA1707/CA1515: Benchmark naming and BenchmarkDotNet. -->
-    <NoWarn>$(NoWarn);CA1707;CA1515;CA1822</NoWarn>
+    <!-- CA1812: Benchmark handlers/behaviors are instantiated via DI by type. -->
+    <NoWarn>$(NoWarn);CA1707;CA1515;CA1822;CA1812</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.15.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 
   <ItemGroup>

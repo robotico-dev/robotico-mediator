@@ -47,6 +47,7 @@ public static class MediatorServiceCollectionExtensions
         RegisterPipelineBehaviors(services, assemblies);
         RegisterValidators(services, assemblies);
         services.AddTransient<IPipelineBehavior<IRequest<Robotico.Result.Result>, Robotico.Result.Result>, ValidationPipelineBehavior>();
+        services.AddTransient<IPipelineBehavior<IRequest<Robotico.Result.Result>, Robotico.Result.Result>, ObservabilityPipelineBehavior<IRequest<Robotico.Result.Result>, Robotico.Result.Result>>();
 
         return services;
     }
@@ -75,8 +76,10 @@ public static class MediatorServiceCollectionExtensions
 
         foreach (Assembly assembly in assemblies)
         {
-            IEnumerable<Type> types = assembly.GetTypes()
-                .Where(type => type is { IsAbstract: false, IsInterface: false });
+            IEnumerable<Type> types =
+                from type in assembly.GetTypes()
+                where type is { IsAbstract: false, IsInterface: false }
+                select type;
 
             foreach (Type type in types)
             {
@@ -111,8 +114,10 @@ public static class MediatorServiceCollectionExtensions
 
         foreach (Assembly assembly in assemblies)
         {
-            IEnumerable<Type> types = assembly.GetTypes()
-                .Where(type => type is { IsAbstract: false, IsInterface: false });
+            IEnumerable<Type> types =
+                from type in assembly.GetTypes()
+                where type is { IsAbstract: false, IsInterface: false }
+                select type;
 
             foreach (Type type in types)
             {
@@ -139,8 +144,10 @@ public static class MediatorServiceCollectionExtensions
 
         foreach (Assembly assembly in assemblies)
         {
-            IEnumerable<Type> types = assembly.GetTypes()
-                .Where(type => type is { IsAbstract: false, IsInterface: false });
+            IEnumerable<Type> types =
+                from type in assembly.GetTypes()
+                where type is { IsAbstract: false, IsInterface: false }
+                select type;
 
             foreach (Type type in types)
             {

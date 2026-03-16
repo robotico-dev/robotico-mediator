@@ -14,7 +14,15 @@ namespace Robotico.Mediator.Tests.Generated;
 /// </summary>
 public class GeneratedMediatorContractTests
 {
-    private static IMediator CreateGeneratedMediator()
+    private sealed class MediatorScope : IDisposable
+    {
+        private readonly ServiceProvider _provider;
+        public IMediator Mediator { get; }
+        public MediatorScope(ServiceProvider provider, IMediator mediator) { _provider = provider; Mediator = mediator; }
+        public void Dispose() => _provider.Dispose();
+    }
+
+    private static MediatorScope CreateGeneratedMediator()
     {
         ServiceCollection services = new();
         services.AddLogging();
@@ -22,13 +30,14 @@ public class GeneratedMediatorContractTests
         services.AddTransient<IRequestHandler<GenPingQuery, string>, GenPingQueryHandler>();
         services.AddTransient<IRequestHandler<GenVoidCommand>, GenVoidCommandHandler>();
         ServiceProvider provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<IMediator>();
+        return new MediatorScope(provider, provider.GetRequiredService<IMediator>());
     }
 
     [Fact]
     public async Task SendAsync_WithTypedRequest_ReturnsHandlerResponse()
     {
-        IMediator mediator = CreateGeneratedMediator();
+        using MediatorScope scope = CreateGeneratedMediator();
+        IMediator mediator = scope.Mediator;
         GenPingQuery query = new("hello");
 
         string result = await mediator.SendAsync(query);
@@ -39,7 +48,8 @@ public class GeneratedMediatorContractTests
     [Fact]
     public async Task SendAsync_WithVoidRequest_ReturnsSuccessResult()
     {
-        IMediator mediator = CreateGeneratedMediator();
+        using MediatorScope scope = CreateGeneratedMediator();
+        IMediator mediator = scope.Mediator;
         GenVoidCommand command = new("test");
 
         VoidResult result = await mediator.SendAsync(command);
@@ -50,7 +60,8 @@ public class GeneratedMediatorContractTests
     [Fact]
     public async Task SendAsync_VoidOverload_EquivalentToTypedResult()
     {
-        IMediator mediator = CreateGeneratedMediator();
+        using MediatorScope scope = CreateGeneratedMediator();
+        IMediator mediator = scope.Mediator;
         GenVoidCommand command = new("id");
 
         VoidResult fromVoid = await mediator.SendAsync(command);
@@ -63,7 +74,8 @@ public class GeneratedMediatorContractTests
     [Fact]
     public async Task SendAsync_WithNullRequest_ThrowsArgumentNullException()
     {
-        IMediator mediator = CreateGeneratedMediator();
+        using MediatorScope scope = CreateGeneratedMediator();
+        IMediator mediator = scope.Mediator;
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => mediator.SendAsync<string>(null!));
     }
@@ -71,7 +83,8 @@ public class GeneratedMediatorContractTests
     [Fact]
     public async Task SendAsync_VoidWithNullRequest_ThrowsArgumentNullException()
     {
-        IMediator mediator = CreateGeneratedMediator();
+        using MediatorScope scope = CreateGeneratedMediator();
+        IMediator mediator = scope.Mediator;
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => mediator.SendAsync(null!));
     }
@@ -82,7 +95,8 @@ public class GeneratedMediatorContractTests
         ServiceCollection services = new();
         services.AddLogging();
         services.AddTransient<IMediator, GeneratedMediator>();
-        IMediator mediator = services.BuildServiceProvider().GetRequiredService<IMediator>();
+        using ServiceProvider provider = services.BuildServiceProvider();
+        IMediator mediator = provider.GetRequiredService<IMediator>();
         GenPingQuery query = new("unhandled");
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => mediator.SendAsync(query));

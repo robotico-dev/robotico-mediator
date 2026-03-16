@@ -62,7 +62,7 @@ public class MediatorPipelineTests
         services.AddTransient<IPipelineBehavior<IRequest<string>, string>>(_ => new FirstBehavior(executionOrder));
         services.AddTransient<IPipelineBehavior<IRequest<string>, string>>(_ => new SecondBehavior(executionOrder));
         services.AddTransient<IMediator, Robotico.Mediator.Mediator>();
-        ServiceProvider provider = services.BuildServiceProvider();
+        using ServiceProvider provider = services.BuildServiceProvider();
         IMediator mediator = provider.GetRequiredService<IMediator>();
         PipelineQuery query = new("test");
 
@@ -80,7 +80,7 @@ public class MediatorPipelineTests
         services.AddTransient<IRequestHandler<PipelineQuery, string>, PipelineQueryHandler>();
         services.AddTransient<IPipelineBehavior<IRequest<string>, string>, ShortCircuitBehavior>();
         services.AddTransient<IMediator, Robotico.Mediator.Mediator>();
-        ServiceProvider provider = services.BuildServiceProvider();
+        using ServiceProvider provider = services.BuildServiceProvider();
         IMediator mediator = provider.GetRequiredService<IMediator>();
         PipelineQuery query = new("original");
 

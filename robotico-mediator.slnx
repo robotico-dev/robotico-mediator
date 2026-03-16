@@ -9,13 +9,16 @@
     <Project Path="tests/Robotico.Mediator.Tests.DuplicateScanHandlers/Robotico.Mediator.Tests.DuplicateScanHandlers.csproj" />
     <Project Path="tests/Robotico.Mediator.Tests.Generated/Robotico.Mediator.Tests.Generated.csproj" />
   </Folder>
+  <Folder Name="/00 Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="LICENSE" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+  </Folder>
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/Robotico.Mediator.Benchmarks/Robotico.Mediator.Benchmarks.csproj" />
-  </Folder>
-  <Folder Name="/Solution Items/">
-    <File Path=".gitignore" />
-    <File Path=".editorconfig" />
-    <File Path="Directory.Build.props" />
-    <File Path="README.md" />
   </Folder>
 </Solution>
