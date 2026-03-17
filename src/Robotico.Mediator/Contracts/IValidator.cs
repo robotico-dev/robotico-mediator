@@ -3,6 +3,7 @@ namespace Robotico.Mediator;
 /// <summary>
 /// Defines a validator for a request. Use with <see cref="ValidationPipelineBehavior"/> to run
 /// validation before the handler; invalid requests short-circuit with <see cref="Robotico.Result.Result.ValidationError"/>.
+/// Implement this interface for each request type that requires validation; the pipeline resolves validators from DI.
 /// </summary>
 /// <typeparam name="TRequest">The type of request to validate.</typeparam>
 public interface IValidator<in TRequest>
