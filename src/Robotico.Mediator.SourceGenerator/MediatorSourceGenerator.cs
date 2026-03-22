@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -23,10 +24,16 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(compilationProvider, (sp, compilation) =>
         {
-            if (!FindHandlerTypes(compilation, sp.CancellationToken, out var typedHandlers, out var voidHandlers))
+            if (!FindHandlerTypes(
+                compilation,
+                sp.CancellationToken,
+                out ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)> typedHandlers,
+                out ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)> voidHandlers))
+            {
                 return;
+            }
 
-            string source = GenerateMediatorSource(compilation.AssemblyName ?? "Generated", typedHandlers, voidHandlers);
+            string source = GenerateMediatorSource(typedHandlers, voidHandlers);
             sp.AddSource("GeneratedMediator.g.cs", SourceText.From(source, Encoding.UTF8));
         });
     }
@@ -44,35 +51,53 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
         INamedTypeSymbol? handler1 = compilation.GetTypeByMetadataName(IRequestHandler1MetadataName);
         INamedTypeSymbol? resultType = compilation.GetTypeByMetadataName(ResultMetadataName);
         if (handler2 is null || handler1 is null || resultType is null)
+        {
             return false;
+        }
 
-        var typedList = new List<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)>();
-        var voidList = new List<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)>();
+        List<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)> typedList =
+            new List<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)>();
+        List<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)> voidList =
+            new List<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)>();
 
         foreach (INamedTypeSymbol type in GetAllTypes(compilation.GlobalNamespace, cancellationToken))
         {
             if (type.IsAbstract || type.TypeKind == TypeKind.Interface)
+            {
                 continue;
+            }
 
-            foreach (var iface in type.AllInterfaces)
+            foreach (INamedTypeSymbol iface in type.AllInterfaces)
             {
                 if (!SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, handler2))
+                {
                     continue;
+                }
+
                 if (iface.TypeArguments.Length != 2)
+                {
                     continue;
-                var req = (INamedTypeSymbol)iface.TypeArguments[0];
-                var res = (INamedTypeSymbol)iface.TypeArguments[1];
+                }
+
+                INamedTypeSymbol req = (INamedTypeSymbol)iface.TypeArguments[0];
+                INamedTypeSymbol res = (INamedTypeSymbol)iface.TypeArguments[1];
                 typedList.Add((req, res, (INamedTypeSymbol)iface));
                 break;
             }
 
-            foreach (var iface in type.AllInterfaces)
+            foreach (INamedTypeSymbol iface in type.AllInterfaces)
             {
                 if (!SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, handler1))
+                {
                     continue;
+                }
+
                 if (iface.TypeArguments.Length != 1)
+                {
                     continue;
-                var req = (INamedTypeSymbol)iface.TypeArguments[0];
+                }
+
+                INamedTypeSymbol req = (INamedTypeSymbol)iface.TypeArguments[0];
                 voidList.Add((req, (INamedTypeSymbol)iface));
                 break;
             }
@@ -88,30 +113,34 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
         if (symbol is INamedTypeSymbol type)
         {
             yield return type;
-            foreach (var member in type.GetTypeMembers())
+            foreach (INamedTypeSymbol member in type.GetTypeMembers())
             {
-                foreach (var t in GetAllTypes(member, cancellationToken))
+                foreach (INamedTypeSymbol t in GetAllTypes(member, cancellationToken))
+                {
                     yield return t;
+                }
             }
+
             yield break;
         }
 
         if (symbol is INamespaceSymbol ns)
         {
-            foreach (var member in ns.GetMembers())
+            foreach (INamespaceOrTypeSymbol member in ns.GetMembers().OfType<INamespaceOrTypeSymbol>())
             {
-                foreach (var t in GetAllTypes(member, cancellationToken))
+                foreach (INamedTypeSymbol t in GetAllTypes(member, cancellationToken))
+                {
                     yield return t;
+                }
             }
         }
     }
 
     private static string GenerateMediatorSource(
-        string assemblyName,
         ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)> typedHandlers,
         ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)> voidHandlers)
     {
-        var sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         sb.AppendLine("// <auto-generated />");
         sb.AppendLine("#nullable enable");
         sb.AppendLine("using System;");
@@ -142,41 +171,47 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
         sb.AppendLine("        switch (request)");
         sb.AppendLine("        {");
 
-        var requestTypes = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (request, response, handlerInterface) in typedHandlers)
+        HashSet<string> requestTypes = new HashSet<string>(StringComparer.Ordinal);
+        foreach ((INamedTypeSymbol request, INamedTypeSymbol _, INamedTypeSymbol handlerInterface) in typedHandlers)
         {
             string reqName = request.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             if (!requestTypes.Add(reqName))
+            {
                 continue;
+            }
+
             string handlerName = handlerInterface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             string reqShort = request.Name;
             sb.Append("            case ").Append(reqName).Append(" ").Append(reqShort).AppendLine(":");
             sb.AppendLine("                {");
             sb.Append("                    object? __s = _serviceProvider.GetService(typeof(").Append(handlerName).AppendLine("));");
             sb.AppendLine("                    if (__s is null)");
-            sb.Append("                        throw new InvalidOperationException(\"No handler registered for request type ").Append(request.Name).AppendLine(".\");");
-            sb.Append("                    var __h = (").Append(handlerName).Append(")__s; return (TResponse)(object)await __h.HandleAsync(").Append(reqShort).AppendLine(", cancellationToken).ConfigureAwait(false);");
+            sb.Append("                        throw new global::Robotico.Mediator.MediatorNoHandlerException(\"").Append(request.Name).AppendLine("\");");
+            sb.Append("                    ").Append(handlerName).Append(" __h = (").Append(handlerName).Append(")__s; return (TResponse)(object)await __h.HandleAsync(").Append(reqShort).AppendLine(", cancellationToken).ConfigureAwait(false);");
             sb.AppendLine("                }");
         }
 
-        foreach (var (request, handlerInterface) in voidHandlers)
+        foreach ((INamedTypeSymbol request, INamedTypeSymbol handlerInterface) in voidHandlers)
         {
             string reqName = request.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             if (!requestTypes.Add(reqName))
+            {
                 continue;
+            }
+
             string handlerName = handlerInterface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             string reqShort = request.Name;
             sb.Append("            case ").Append(reqName).Append(" ").Append(reqShort).AppendLine(":");
             sb.AppendLine("                {");
             sb.Append("                    object? __s = _serviceProvider.GetService(typeof(").Append(handlerName).AppendLine("));");
             sb.AppendLine("                    if (__s is null)");
-            sb.Append("                        throw new InvalidOperationException(\"No handler registered for request type ").Append(request.Name).AppendLine(".\");");
-            sb.Append("                    var __h = (").Append(handlerName).Append(")__s; return (TResponse)(object)await __h.HandleAsync(").Append(reqShort).AppendLine(", cancellationToken).ConfigureAwait(false);");
+            sb.Append("                        throw new global::Robotico.Mediator.MediatorNoHandlerException(\"").Append(request.Name).AppendLine("\");");
+            sb.Append("                    ").Append(handlerName).Append(" __h = (").Append(handlerName).Append(")__s; return (TResponse)(object)await __h.HandleAsync(").Append(reqShort).AppendLine(", cancellationToken).ConfigureAwait(false);");
             sb.AppendLine("                }");
         }
 
         sb.AppendLine("            default:");
-        sb.AppendLine("                throw new InvalidOperationException(\"No handler registered for request type \" + request.GetType().Name + \".\");");
+        sb.AppendLine("                throw new global::Robotico.Mediator.MediatorNoHandlerException(request.GetType().Name);");
         sb.AppendLine("        }");
         sb.AppendLine("    }");
         sb.AppendLine();

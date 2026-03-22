@@ -11,7 +11,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- CA1707/CA1515: Test naming and discovery. IDE0005: Requires GenerateDocumentationFile when enabled; tests do not generate docs. -->
-    <NoWarn>$(NoWarn);CA1707;CA1515;IDE0005</NoWarn>
+    <NoWarn>$(NoWarn);CA1707;CA1515;IDE0005;IDE0090;IDE0028</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Robotico.Mediator\Robotico.Mediator.csproj" />

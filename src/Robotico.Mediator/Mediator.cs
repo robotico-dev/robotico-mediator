@@ -12,8 +12,8 @@ namespace Robotico.Mediator;
 /// from <see cref="IServiceProvider"/> and dispatches requests through the pipeline.
 /// </summary>
 /// <remarks>
-/// The mediator resolves a single handler per request type. If no handler is found, an
-/// <see cref="InvalidOperationException"/> is thrown. Pipeline behaviors are resolved and executed
+/// The mediator resolves a single handler per request type. If no handler is found, a
+/// <see cref="MediatorNoHandlerException"/> is thrown. Pipeline behaviors are resolved and executed
 /// in registration order before the handler is invoked. Void requests (<see cref="IRequest"/>) use the same
 /// pipeline as typed requests returning <see cref="Robotico.Result.Result"/>.
 /// Handler interface type and <see cref="MethodInfo"/> are cached per (request type, response type) to avoid
@@ -27,7 +27,8 @@ public sealed class Mediator(IServiceProvider serviceProvider, ILogger<Mediator>
 
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when no handler is registered for the request type, or when multiple handlers are registered for the same request type.</exception>
+    /// <exception cref="MediatorNoHandlerException">Thrown when no handler is registered for the request type.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when multiple handlers are registered for the same request type.</exception>
     public async Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -52,7 +53,7 @@ public sealed class Mediator(IServiceProvider serviceProvider, ILogger<Mediator>
 
         if (handler is null)
         {
-            throw new InvalidOperationException($"No handler registered for request type {requestType.Name}.");
+            throw new MediatorNoHandlerException(requestType.Name);
         }
 
         IEnumerable<IPipelineBehavior<IRequest<TResponse>, TResponse>> behaviors =
@@ -92,7 +93,8 @@ public sealed class Mediator(IServiceProvider serviceProvider, ILogger<Mediator>
 
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when no handler is registered for the request type, or when multiple handlers are registered for the same request type.</exception>
+    /// <exception cref="MediatorNoHandlerException">Thrown when no handler is registered for the request type.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when multiple handlers are registered for the same request type.</exception>
     public Task<Robotico.Result.Result> SendAsync(IRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);

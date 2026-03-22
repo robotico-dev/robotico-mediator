@@ -13,7 +13,7 @@ public interface IMediator
     /// <param name="request">The request to send.</param>
     /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
     /// <returns>A task representing the asynchronous operation, containing the response from the handler.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when no handler is registered for the request type.</exception>
+    /// <exception cref="MediatorNoHandlerException">Thrown when no handler is registered for the request type.</exception>
     Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -22,6 +22,6 @@ public interface IMediator
     /// <param name="request">The request to send.</param>
     /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
     /// <returns>A task representing the asynchronous operation, containing the result.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when no handler is registered for the request type.</exception>
+    /// <exception cref="MediatorNoHandlerException">Thrown when no handler is registered for the request type.</exception>
     Task<Robotico.Result.Result> SendAsync(IRequest request, CancellationToken cancellationToken = default);
 }

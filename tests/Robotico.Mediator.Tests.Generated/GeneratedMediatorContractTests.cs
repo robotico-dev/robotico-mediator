@@ -12,17 +12,9 @@ namespace Robotico.Mediator.Tests.Generated;
 /// Contract tests for the source-generated mediator (GeneratedMediator).
 /// Ensures the generated path behaves like the reflection-based Mediator for the same scenarios.
 /// </summary>
-public class GeneratedMediatorContractTests
+public sealed class GeneratedMediatorContractTests
 {
-    private sealed class MediatorScope : IDisposable
-    {
-        private readonly ServiceProvider _provider;
-        public IMediator Mediator { get; }
-        public MediatorScope(ServiceProvider provider, IMediator mediator) { _provider = provider; Mediator = mediator; }
-        public void Dispose() => _provider.Dispose();
-    }
-
-    private static MediatorScope CreateGeneratedMediator()
+    private static GeneratedMediatorContractTestScope CreateGeneratedMediator()
     {
         ServiceCollection services = new();
         services.AddLogging();
@@ -30,13 +22,13 @@ public class GeneratedMediatorContractTests
         services.AddTransient<IRequestHandler<GenPingQuery, string>, GenPingQueryHandler>();
         services.AddTransient<IRequestHandler<GenVoidCommand>, GenVoidCommandHandler>();
         ServiceProvider provider = services.BuildServiceProvider();
-        return new MediatorScope(provider, provider.GetRequiredService<IMediator>());
+        return new GeneratedMediatorContractTestScope(provider, provider.GetRequiredService<IMediator>());
     }
 
     [Fact]
     public async Task SendAsync_WithTypedRequest_ReturnsHandlerResponse()
     {
-        using MediatorScope scope = CreateGeneratedMediator();
+        using GeneratedMediatorContractTestScope scope = CreateGeneratedMediator();
         IMediator mediator = scope.Mediator;
         GenPingQuery query = new("hello");
 
@@ -48,7 +40,7 @@ public class GeneratedMediatorContractTests
     [Fact]
     public async Task SendAsync_WithVoidRequest_ReturnsSuccessResult()
     {
-        using MediatorScope scope = CreateGeneratedMediator();
+        using GeneratedMediatorContractTestScope scope = CreateGeneratedMediator();
         IMediator mediator = scope.Mediator;
         GenVoidCommand command = new("test");
 
@@ -60,7 +52,7 @@ public class GeneratedMediatorContractTests
     [Fact]
     public async Task SendAsync_VoidOverload_EquivalentToTypedResult()
     {
-        using MediatorScope scope = CreateGeneratedMediator();
+        using GeneratedMediatorContractTestScope scope = CreateGeneratedMediator();
         IMediator mediator = scope.Mediator;
         GenVoidCommand command = new("id");
 
@@ -74,7 +66,7 @@ public class GeneratedMediatorContractTests
     [Fact]
     public async Task SendAsync_WithNullRequest_ThrowsArgumentNullException()
     {
-        using MediatorScope scope = CreateGeneratedMediator();
+        using GeneratedMediatorContractTestScope scope = CreateGeneratedMediator();
         IMediator mediator = scope.Mediator;
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => mediator.SendAsync<string>(null!));
@@ -83,14 +75,14 @@ public class GeneratedMediatorContractTests
     [Fact]
     public async Task SendAsync_VoidWithNullRequest_ThrowsArgumentNullException()
     {
-        using MediatorScope scope = CreateGeneratedMediator();
+        using GeneratedMediatorContractTestScope scope = CreateGeneratedMediator();
         IMediator mediator = scope.Mediator;
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => mediator.SendAsync(null!));
     }
 
     [Fact]
-    public async Task SendAsync_WithNoRegisteredHandler_ThrowsInvalidOperationException()
+    public async Task SendAsync_WithNoRegisteredHandler_ThrowsMediatorNoHandlerException()
     {
         ServiceCollection services = new();
         services.AddLogging();
@@ -99,6 +91,6 @@ public class GeneratedMediatorContractTests
         IMediator mediator = provider.GetRequiredService<IMediator>();
         GenPingQuery query = new("unhandled");
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => mediator.SendAsync(query));
+        await Assert.ThrowsAsync<MediatorNoHandlerException>(() => mediator.SendAsync(query));
     }
 }

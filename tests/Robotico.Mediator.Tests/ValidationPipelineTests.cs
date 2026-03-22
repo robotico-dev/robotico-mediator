@@ -9,7 +9,8 @@ namespace Robotico.Mediator.Tests;
 /// Tests for ValidationPipelineBehavior and IValidator integration.
 /// Uses the ScanHandlers assembly so assembly scan does not pick up duplicate handlers from the main test assembly.
 /// </summary>
-public class ValidationPipelineTests
+[Collection("MediatorScanHandlers")]
+public sealed class ValidationPipelineTests
 {
     [Fact]
     public async Task ValidationPipeline_WhenValid_InvokesHandler()

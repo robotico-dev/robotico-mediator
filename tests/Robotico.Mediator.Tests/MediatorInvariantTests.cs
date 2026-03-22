@@ -1,8 +1,11 @@
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Robotico.Mediator;
 using Robotico.Mediator.Tests.DuplicateScanHandlers;
+using Robotico.Mediator.Tests.MediatorInvariantPipelineTypes;
 using Robotico.Mediator.Tests.ScanHandlers;
 using VoidResult = Robotico.Result.Result;
+using Xunit;
 
 namespace Robotico.Mediator.Tests;
 
@@ -10,6 +13,7 @@ namespace Robotico.Mediator.Tests;
 /// Invariant tests: pipeline order (first registered = outermost), validation short-circuit (handler not invoked when validator fails),
 /// duplicate handler at registration (AddMediator throws when assembly contains two handlers for same request).
 /// </summary>
+[Collection("MediatorScanHandlers")]
 public sealed class MediatorInvariantTests
 {
     [Fact]
@@ -18,14 +22,16 @@ public sealed class MediatorInvariantTests
         List<string> order = [];
         ServiceCollection services = new();
         services.AddLogging();
-        services.AddTransient<IRequestHandler<OrderQuery, int>, OrderQueryHandler>();
-        services.AddTransient<IPipelineBehavior<IRequest<int>, int>>(_ => new OuterBehavior(order));
-        services.AddTransient<IPipelineBehavior<IRequest<int>, int>>(_ => new InnerBehavior(order));
+        services.AddTransient<IRequestHandler<PipelineInvariantOrderQuery, int>, PipelineInvariantOrderQueryHandler>();
+        services.AddTransient<IPipelineBehavior<IRequest<int>, int>>(
+            _ => new PipelineInvariantOuterBehavior(order));
+        services.AddTransient<IPipelineBehavior<IRequest<int>, int>>(
+            _ => new PipelineInvariantInnerBehavior(order));
         services.AddTransient<IMediator, Robotico.Mediator.Mediator>();
         using ServiceProvider provider = services.BuildServiceProvider();
         IMediator mediator = provider.GetRequiredService<IMediator>();
 
-        int result = await mediator.SendAsync(new OrderQuery(1));
+        int result = await mediator.SendAsync(new PipelineInvariantOrderQuery(1));
 
         result.Should().Be(1);
         order.Should().ContainInOrder("Outer:Before", "Inner:Before", "Inner:After", "Outer:After");
@@ -58,38 +64,4 @@ public sealed class MediatorInvariantTests
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*Multiple handlers*DuplicateScanRequest*");
     }
-
-    #region Test types for pipeline order
-
-    private record OrderQuery(int Id) : IRequest<int>;
-
-    private sealed class OrderQueryHandler : IRequestHandler<OrderQuery, int>
-    {
-        public Task<int> HandleAsync(OrderQuery request, CancellationToken cancellationToken = default) =>
-            Task.FromResult(request.Id);
-    }
-
-    private sealed class OuterBehavior(List<string> order) : IPipelineBehavior<IRequest<int>, int>
-    {
-        public async Task<int> HandleAsync(IRequest<int> request, RequestHandlerDelegate<int> next, CancellationToken cancellationToken = default)
-        {
-            order.Add("Outer:Before");
-            int result = await next();
-            order.Add("Outer:After");
-            return result;
-        }
-    }
-
-    private sealed class InnerBehavior(List<string> order) : IPipelineBehavior<IRequest<int>, int>
-    {
-        public async Task<int> HandleAsync(IRequest<int> request, RequestHandlerDelegate<int> next, CancellationToken cancellationToken = default)
-        {
-            order.Add("Inner:Before");
-            int result = await next();
-            order.Add("Inner:After");
-            return result;
-        }
-    }
-
-    #endregion
 }
