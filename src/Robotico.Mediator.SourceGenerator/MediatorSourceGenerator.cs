@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -12,23 +13,23 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
     private const string IRequestHandler2MetadataName = "Robotico.Mediator.IRequestHandler`2";
     private const string IRequestHandler1MetadataName = "Robotico.Mediator.IRequestHandler`1";
     private const string ResultMetadataName = "Robotico.Result.Result";
+    private const string HandlersAssemblyAttributeMetadataName = "Robotico.Mediator.RoboticoMediatorHandlersAssemblyAttribute";
+
+    private static readonly DiagnosticDescriptor DuplicateHandlerDescriptor = new(
+        "RM0001",
+        "Duplicate mediator handler for the same request type",
+        "More than one IRequestHandler maps to request type '{0}'. Remove duplicate handlers or consolidate them.",
+        "Robotico.Mediator.SourceGenerator",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(static ctx =>
-        {
-            // Optionally add a marker attribute or no-op so the generator is discoverable
-        });
-
         IncrementalValueProvider<Compilation> compilationProvider = context.CompilationProvider;
 
-        context.RegisterSourceOutput(compilationProvider, (sp, compilation) =>
+        context.RegisterSourceOutput(compilationProvider, static (sp, compilation) =>
         {
-            if (!FindHandlerTypes(
-                compilation,
-                sp.CancellationToken,
-                out ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)> typedHandlers,
-                out ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)> voidHandlers))
+            if (!TryFindHandlerTypes(compilation, sp, out ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)> typedHandlers, out ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)> voidHandlers))
             {
                 return;
             }
@@ -38,14 +39,14 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
         });
     }
 
-    private static bool FindHandlerTypes(
+    private static bool TryFindHandlerTypes(
         Compilation compilation,
-        CancellationToken cancellationToken,
+        SourceProductionContext sp,
         out ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)> typedHandlers,
         out ImmutableArray<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)> voidHandlers)
     {
-        typedHandlers = ImmutableArray<(INamedTypeSymbol, INamedTypeSymbol, INamedTypeSymbol)>.Empty;
-        voidHandlers = ImmutableArray<(INamedTypeSymbol, INamedTypeSymbol)>.Empty;
+        typedHandlers = [];
+        voidHandlers = [];
 
         INamedTypeSymbol? handler2 = compilation.GetTypeByMetadataName(IRequestHandler2MetadataName);
         INamedTypeSymbol? handler1 = compilation.GetTypeByMetadataName(IRequestHandler1MetadataName);
@@ -55,14 +56,25 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
             return false;
         }
 
+        INamedTypeSymbol? markerAttribute = compilation.GetTypeByMetadataName(HandlersAssemblyAttributeMetadataName);
+        bool restrictToMarkedAssemblies = ShouldRestrictDiscoveryToMarkedAssemblies(compilation, markerAttribute);
+
         List<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)> typedList =
             new List<(INamedTypeSymbol Request, INamedTypeSymbol Response, INamedTypeSymbol HandlerInterface)>();
         List<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)> voidList =
             new List<(INamedTypeSymbol Request, INamedTypeSymbol HandlerInterface)>();
 
-        foreach (INamedTypeSymbol type in GetAllTypes(compilation.GlobalNamespace, cancellationToken))
+        Dictionary<INamedTypeSymbol, INamedTypeSymbol> typedRequestToHandlerInterface = new Dictionary<INamedTypeSymbol, INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        Dictionary<INamedTypeSymbol, INamedTypeSymbol> voidRequestToHandlerInterface = new Dictionary<INamedTypeSymbol, INamedTypeSymbol>(SymbolEqualityComparer.Default);
+
+        foreach (INamedTypeSymbol type in GetAllTypes(compilation.GlobalNamespace, sp.CancellationToken))
         {
             if (type.IsAbstract || type.TypeKind == TypeKind.Interface)
+            {
+                continue;
+            }
+
+            if (restrictToMarkedAssemblies && markerAttribute is not null && !AssemblyDefinesMarker(type.ContainingAssembly, markerAttribute))
             {
                 continue;
             }
@@ -81,7 +93,18 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
 
                 INamedTypeSymbol req = (INamedTypeSymbol)iface.TypeArguments[0];
                 INamedTypeSymbol res = (INamedTypeSymbol)iface.TypeArguments[1];
-                typedList.Add((req, res, (INamedTypeSymbol)iface));
+                INamedTypeSymbol handlerInterface = iface;
+                if (typedRequestToHandlerInterface.TryGetValue(req, out _))
+                {
+                    sp.ReportDiagnostic(Diagnostic.Create(
+                        DuplicateHandlerDescriptor,
+                        type.Locations.FirstOrDefault(),
+                        req.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
+                    return false;
+                }
+
+                typedRequestToHandlerInterface[req] = handlerInterface;
+                typedList.Add((req, res, handlerInterface));
                 break;
             }
 
@@ -98,7 +121,27 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
                 }
 
                 INamedTypeSymbol req = (INamedTypeSymbol)iface.TypeArguments[0];
-                voidList.Add((req, (INamedTypeSymbol)iface));
+                INamedTypeSymbol handlerInterface = iface;
+                if (typedRequestToHandlerInterface.ContainsKey(req))
+                {
+                    sp.ReportDiagnostic(Diagnostic.Create(
+                        DuplicateHandlerDescriptor,
+                        type.Locations.FirstOrDefault(),
+                        req.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
+                    return false;
+                }
+
+                if (voidRequestToHandlerInterface.TryGetValue(req, out _))
+                {
+                    sp.ReportDiagnostic(Diagnostic.Create(
+                        DuplicateHandlerDescriptor,
+                        type.Locations.FirstOrDefault(),
+                        req.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
+                    return false;
+                }
+
+                voidRequestToHandlerInterface[req] = handlerInterface;
+                voidList.Add((req, handlerInterface));
                 break;
             }
         }
@@ -106,6 +149,42 @@ public sealed class MediatorSourceGenerator : IIncrementalGenerator
         typedHandlers = typedList.ToImmutableArray();
         voidHandlers = voidList.ToImmutableArray();
         return typedHandlers.Length > 0 || voidHandlers.Length > 0;
+    }
+
+    private static bool ShouldRestrictDiscoveryToMarkedAssemblies(Compilation compilation, INamedTypeSymbol? markerAttribute)
+    {
+        if (markerAttribute is null)
+        {
+            return false;
+        }
+
+        if (AssemblyDefinesMarker(compilation.Assembly, markerAttribute))
+        {
+            return true;
+        }
+
+        foreach (MetadataReference reference in compilation.References)
+        {
+            if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol asm && AssemblyDefinesMarker(asm, markerAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool AssemblyDefinesMarker(IAssemblySymbol assembly, INamedTypeSymbol markerAttribute)
+    {
+        foreach (AttributeData attribute in assembly.GetAttributes())
+        {
+            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, markerAttribute))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static IEnumerable<INamedTypeSymbol> GetAllTypes(INamespaceOrTypeSymbol symbol, CancellationToken cancellationToken)

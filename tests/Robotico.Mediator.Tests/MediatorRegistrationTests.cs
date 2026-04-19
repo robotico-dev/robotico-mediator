@@ -43,7 +43,7 @@ public class MediatorRegistrationTests
     {
         ServiceCollection services = new();
 
-        Action act = () => services.AddMediator(Array.Empty<System.Reflection.Assembly>());
+        Action act = () => services.AddMediator([]);
 
         act.Should().Throw<ArgumentException>()
             .WithParameterName("assemblies");

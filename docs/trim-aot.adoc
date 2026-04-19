@@ -26,6 +26,12 @@ Use the optional **Robotico.Mediator.SourceGenerator** package when:
 
 Reference the source generator in your application project and register `GeneratedMediator` as `IMediator` instead of the default `Mediator`. See link:design.adoc#_optional_source_generator_robotico_mediator_sourcegenerator[Design — Optional source generator] for details.
 
+*Duplicate handlers:* the generator reports *RM0001* when two concrete handlers map to the same request type. Fix by removing or merging handlers.
+
+*Opt-in assembly discovery:* add `[assembly: RoboticoMediatorHandlersAssembly]` to assemblies that should contribute handlers. If *any* assembly in the compilation defines this attribute, only assemblies that also define it are scanned for handlers (default: scan all assemblies, backward compatible).
+
+Application-focused bootstrap notes and a documentation snippet live under the Robotico workspace: link:../../build/snippets/robotico-application-Directory.Build.props.example[robotico-application-Directory.Build.props.example] (relative to monorepo `csharp/build/snippets/`).
+
 == If you see trim or AOT warnings
 
 1. Ensure you are on a recent version of the library.

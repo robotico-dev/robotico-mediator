@@ -8,7 +8,7 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!-- CA1834/IDE0011/IDE0005: generator constraints; explicit types enforced (IDE0008 not suppressed). -->
     <!-- IDE0090/IDE0028: keep explicit `new List<...>()` / `new HashSet<...>()` (organizational bar); analyzers prefer target-typed new / collection expr. -->
-    <NoWarn>$(NoWarn);CA1834;IDE0011;IDE0005;IDE0090;IDE0028</NoWarn>
+    <NoWarn>$(NoWarn);CA1834;IDE0011;IDE0005;IDE0090;IDE0028;RS2008</NoWarn>
     <RestoreNoWarn>$(RestoreNoWarn);NU1603</RestoreNoWarn>
     <RestoreTreatWarningsAsErrors>false</RestoreTreatWarningsAsErrors>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <!-- Package icon: single source at repo assets. -->
     <None Include="..\..\assets\logosquare.png" Pack="true" PackagePath="\" Link="logosquare.png" />
